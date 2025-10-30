@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Summarized Articles</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <form class="search" method="get" action="/">
+    <input
+      type="text"
+      name="q"
+      value="{{ q }}"
+      placeholder="Search keyword..."
+      style="width:75%;padding:0.4rem;border-radius:6px;border:1px solid #ccc;"
+    />
+    <button type="submit" style="padding:0.4rem 0.8rem;">Search</button>
+  </form>
+
+  {% if not items %}
+    <p>No results found.</p>
+  {% endif %}
+
+  {% for item in items %}
+    <div class="card">
+      <div class="title"><a href="{{ item.url }}" target="_blank">{{ item.title }}</a></div>
+      <p>{{ item.summary }}</p>
+      {% if item.takeaways %}
+        <ul class="takeaways">
+          {% for t in item.takeaways %}
+            <li>{{ t }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  {% endfor %}
+</body>
+</html>

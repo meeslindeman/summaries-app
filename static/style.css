@@ -1,0 +1,44 @@
+body {
+  font-family: system-ui, sans-serif;
+  background: #f7f7f7;
+  color: #222;
+  margin: 0;
+  padding: 1rem;
+}
+.search {
+  margin-bottom: 1rem;
+}
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+}
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.title a {
+  color: #1a0dab;
+  text-decoration: none;
+}
+.why {
+  font-style: italic;
+  color: #555;
+  margin-top: 0.4rem;
+}
+.tags {
+  margin-top: 0.4rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.takeaways {
+  margin: 0.4rem 0 0 1rem;
+  padding: 0;
+}
+.takeaways li {
+  margin: 0.2rem 0;
+}
