@@ -1,0 +1,6 @@
+{
+  "home_count": 5,
+  "per_feed_cap": 3,
+  "per_domain_quota": 2,
+  "recency_half_life_hours": 24
+}

@@ -3,6 +3,9 @@ import os
 from typing import List
 from app.pipeline import run_once
 
+from app.logging import setup
+log = setup()
+
 DEF_FEEDS = "data/feeds.txt"
 DEF_INCLUDE = "data/include.txt"
 DEF_EXCLUDE = "data/exclude.txt"
@@ -14,6 +17,8 @@ def load_lines(path: str) -> List[str]:
         return [ln.strip() for ln in f if ln.strip() and not ln.strip().startswith("#")]
 
 def main():
+    log.info("Starting ingest")
+
     ap = argparse.ArgumentParser(description="Ingest feeds, summarize, and cache results.")
     ap.add_argument("--feeds", default=DEF_FEEDS, help="Path to feeds list")
     ap.add_argument("--include", default=DEF_INCLUDE, help="Path to include keywords list")
@@ -35,7 +40,8 @@ def main():
         per_feed=args.per_feed,
         dry_run=args.dry_run,
     )
-    print("done", stats)
+
+    log.info("Done %s", stats)
 
 if __name__ == "__main__":
     main()

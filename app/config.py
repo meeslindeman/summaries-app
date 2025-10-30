@@ -18,5 +18,6 @@ class Settings:
     max_output_tokens: int = int(os.getenv("MAX_OUTPUT_TOKENS", "220"))
     db_path: Path = DATA_DIR / "cache.sqlite"
     user_agent: str = os.getenv("USER_AGENT", "news-summarizer/0.1 (+https://example.local)")
+    refresh_token: str = os.getenv("REFRESH_TOKEN", "")
 
 settings = Settings()
