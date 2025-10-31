@@ -129,7 +129,7 @@
     refreshBtn.disabled = true;
     try {
       const headers = { "Content-Type": "application/json" };
-      const token = getToken();
+      const token = localStorage.getItem("refresh_token");
       if (token) headers["Authorization"] = "Bearer " + token;
 
       const res = await fetch("/refresh", {
@@ -137,15 +137,36 @@
         headers,
         body: JSON.stringify({}),
       });
+
+      if (res.status === 401) {
+        // token changed/invalid — clear and prompt once
+        localStorage.removeItem("refresh_token");
+        const newTok = prompt("Enter refresh token:");
+        if (newTok) {
+          localStorage.setItem("refresh_token", newTok);
+          return doRefresh(); // retry immediately with the new token
+        }
+        refreshBtn.disabled = false;
+        return;
+      }
+
+      if (res.status === 429) {
+        alert("Please wait a bit before refreshing again.");
+        refreshBtn.disabled = false;
+        return;
+      }
+
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "refresh failed");
-      // Silent refresh; rebuild the list for current filter
+
+      // Success: silently reload the first page
       clearAndLoadFirstPage();
     } catch (e) {
       alert("Refresh failed: " + e.message);
       refreshBtn.disabled = false;
     }
   }
+
 
   // wire events
   if (loadMoreBtn) loadMoreBtn.addEventListener("click", loadMore);
