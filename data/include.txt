@@ -17,6 +17,8 @@ cybersecurity
 "data bescherming"
 open-source
 opensource
+"math"
+"mathematics"
 
 # Chips / compute
 chip
@@ -100,3 +102,30 @@ spatial
 "creatieve ai"
 "ai kunst"
 "media technologie"
+
+# Culture / History / Arts
+kunst
+art
+artist
+museum
+"artificial creativity"
+"digital art"
+"creative technology"
+"culture"
+"cultuur"
+"media history"
+"cultural heritage"
+"technological history"
+"innovation history"
+"design"
+"architecture"
+"industrial design"
+"creative industry"
+"modern art"
+"contemporary art"
+"art history"
+"film technology"
+"music technology"
+"interactive art"
+"museum technology"
+

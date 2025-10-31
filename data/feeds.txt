@@ -1,9 +1,9 @@
 https://www.technologyreview.com/feed/
 https://www.ftm.nl/feed/
 https://www.nrc.nl/rss/
-https://www.nasa.gov/rss/dyn/educationnews.rss
-https://www.nasa.gov/news-release/feed
-https://www.wired.com/feed/rss
-https://www.smithsonianmag.com/rss/arts-culture/
 https://www.smithsonianmag.com/rss/history/
 https://feeds.science.org/rss/science.xml
+https://nautil.us/feed/
+https://www.quantamagazine.org/feed/
+https://www.discovermagazine.com/rss/all
+https://www.historytoday.com/feed/rss.xml
