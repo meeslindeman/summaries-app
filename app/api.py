@@ -14,6 +14,9 @@ from app.util import load_lines
 from app.pipeline import run_once
 from app.settings import load_settings
 
+import time
+_last_refresh_ts = 0
+
 app = FastAPI(title="Summarizer API")
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -166,7 +169,14 @@ def health():
     return {"status": "ok", "last_run": lr}
 
 @app.post("/refresh")
-def refresh(per_feed: int | None = Body(None, embed=True), authorization: str | None = Header(None)):
+def refresh(per_feed: int | None = Body(None, embed=True), 
+            include_details: bool = Body(False, embed=True),
+            authorization: str | None = Header(None)):
+    global _last_refresh_ts
+    now = time.time()
+    if now - _last_refresh_ts < 60:  # 1 minute
+        raise HTTPException(429, "refresh too soon")
+    _last_refresh_ts = now
     required = f"Bearer {settings.refresh_token}" if settings.refresh_token else None
     if required and authorization != required:
         raise HTTPException(status_code=401, detail="unauthorized")
@@ -181,7 +191,10 @@ def refresh(per_feed: int | None = Body(None, embed=True), authorization: str | 
         return JSONResponse({"error": "no feeds configured"}, status_code=400)
 
     stats = run_once(feeds=feeds, includes=inc, excludes=exc, per_feed=per_feed, dry_run=False)
-    return JSONResponse({"ok": True, "stats": stats})
+    if include_details:
+        return JSONResponse({"ok": True, **stats})
+    return JSONResponse({"ok": True, "stats": {k:v for k,v in stats.items() if k != "details"}})
+
 
 @app.get("/home")
 def home_api(limit: int = Query(5, ge=1, le=50),
@@ -214,16 +227,7 @@ def home_page(request: Request, q: str | None = None, source: str | None = None)
 
 @app.get("/sources")
 def sources_api():
-    mapping = build_source_map()
-    # If DB is empty, fall back to feeds.txt domains
-    if not mapping:
-        from urllib.parse import urlsplit
-        feeds = load_lines(str(ROOT / "data" / "feeds.txt"))
-        for u in feeds:
-            host = urlsplit(u).netloc.lower().replace("www.", "")
-            if host:
-                mapping[host] = _prettify_domain(host)
-    # Return unique display names sorted
+    mapping = build_source_map()  # builds from SQLite only
     names = sorted(set(mapping.values()), key=str.lower)
     return JSONResponse({"sources": names})
 

@@ -1,3 +1,102 @@
+# ---------- Global topics (match any) ----------
 ai
-climate
-policy
+"kunstmatige intelligentie"
+"machine learning"
+"neuraal netwerk"
+"large language model"
+LLM
+"generative ai"
+"foundation model"
+"computer vision"
+robotica
+robotics
+algoritme
+algorithms
+privacy
+cybersecurity
+"data bescherming"
+open-source
+opensource
+
+# Chips / compute
+chip
+"halfgeleider"
+semiconductor
+GPU
+accelerator
+Nvidia
+ASML
+TSMC
+Intel
+"chip design"
+
+# Quantum / physics
+quantum
+"quantum computing"
+qubit
+superconduct*
+"deeltjesfysica"
+"natuurkunde"
+
+# Space / astronomy
+ruimtevaart
+astronomie
+astronomy
+satelliet
+lander
+raket
+launcher
+SpaceX
+Starship
+"Blue Origin"
+NASA
+ESA
+"James Webb"
+JWST
+"Hubble"
+exoplaneet
+exoplanet
+
+# Energy / climate / materials
+klimaat
+"klimaat tech"
+energie
+"schone energie"
+"hernieuwbare energie"
+"nucleaire energie"
+kernenergie
+fission
+fusion
+"kernfusie"
+"carbon capture"
+"direct air capture"
+batterij
+"solid-state"
+waterstof
+hydrogen
+
+# Bio / neuro / health tech
+biotech
+genetica
+CRISPR
+synthetic biology
+neuro
+"brain-computer interface"
+BCI
+
+# AR/VR / interfaces
+"augmented reality"
+"virtual reality"
+AR
+VR
+spatial
+"haptische"
+"hmi"
+"human-computer interaction"
+
+# Culture & tech intersections
+"digitale cultuur"
+"tech cultuur"
+"creatieve ai"
+"ai kunst"
+"media technologie"

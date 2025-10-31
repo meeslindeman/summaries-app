@@ -258,28 +258,6 @@ button.refresh-btn:disabled {
   margin-bottom: 1rem;
 }
 
-.takeaways {
-  margin: 1rem 0 0 1.5rem;
-  padding: 0;
-  list-style: none;
-}
-
-.takeaways li {
-  margin: 0.6rem 0;
-  padding-left: 1.2rem;
-  position: relative;
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-}
-
-.takeaways li:before {
-  content: "▪";
-  position: absolute;
-  left: 0;
-  color: var(--accent);
-  font-weight: bold;
-}
-
 .load-more {
   text-align: center;
   margin: 2rem 0;
@@ -336,4 +314,34 @@ button.refresh-btn:disabled {
   .card img {
     height: 250px;
   }
+}
+
+.save-article {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.save-article:hover {
+  color: var(--accent);
+}
+
+.save-article:hover .heart-icon {
+  stroke: var(--accent);
+}
+
+.heart-icon {
+  width: 18px;
+  height: 18px;
+  stroke: var(--accent);
+  stroke-width: 2;
+  fill: none;
+  transition: all 0.2s ease;
 }

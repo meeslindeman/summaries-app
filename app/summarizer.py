@@ -8,11 +8,13 @@ log = setup()
 client = OpenAI(api_key=settings.openai_api_key)
 
 SYSTEM_PROMPT = (
-    "You are a factual summarizer. Write one coherent paragraph (120–160 words) "
-    "that captures the article's main events, facts, and context. Be strictly extractive. "
-    "Then produce 2–4 concise takeaways as short sentences, each a specific fact or implication. "
-    "Return ONLY valid JSON with keys: url, title, summary, takeaways[], tags[]. "
-    "Do not include analysis not present in the text."
+    "You write concise, factual abstracts of news and feature articles. "
+    "Produce one coherent paragraph of about 200 words that summarizes the article itself, "
+    "not what it 'says'—avoid meta language such as 'this article explains' or 'the author argues'. "
+    "Use a neutral, reportorial tone that reads like an abstract. "
+    "Focus on concrete facts, data, events, and conclusions actually stated in the text. "
+    "Return ONLY valid JSON with keys: url, title, summary, tags[]. "
+    "Do not add commentary, opinion, or phrasing not supported by the source."
 )
 
 def _parse_json_safe(s: str) -> dict:
@@ -39,7 +41,7 @@ def summarize_article(url: str, title: str, text: str) -> dict:
                          {"type": "input_text",
                           "text": (
                               'Return JSON only:\n'
-                              '{"url": str, "title": str, "summary": str, "takeaways": [str,...], "tags": [str,...]}\n'
+                              '{"url": str, "title": str, "summary": str, "tags": [str,...]}\n'
                               f"URL: {url}\nTITLE: {title}\n\nARTICLE:\n{capped}"
                           )}
                      ]},
@@ -62,7 +64,5 @@ def summarize_article(url: str, title: str, text: str) -> dict:
     data.setdefault("url", url)
     data.setdefault("title", title)
     data["summary"] = " ".join((data.get("summary") or "").split())
-    tks = data.get("takeaways") or []
-    data["takeaways"] = [str(x).strip() for x in tks if str(x).strip()][:4]
     data["tags"] = list(data.get("tags", []))[:8]
     return data

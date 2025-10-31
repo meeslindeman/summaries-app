@@ -1,2 +1,43 @@
+# ---------- Global excludes (formats you don't want) ----------
+liveblog
+"live blog"
+"minute by minute"
+"as it happens"
+
+podcast
+audiogram
+video-only
+"bekijk de video"
+fotoreportage
+fotogalerij
+
+column
+opinie
 opinion
-rumor
+commentaar
+editorial
+brief
+lezersbrief
+
+advertorial
+gesponsord
+"sponsored content"
+winactie
+
+recept
+sport
+voetbal
+wielrennen
+tennis
+transfer
+
+# ---------- Site-specific excludes ----------
+nrc.nl: liveblog
+nrc.nl: podcast
+nrc.nl: column
+nrc.nl: commentaar
+nrc.nl: "In Beeld"
+
+ftm.nl: podcast
+ftm.nl: "onze nieuwsbrieven"
+ftm.nl: webinar

@@ -32,16 +32,18 @@
     const dateHtml = it.published_date
       ? `<div class="date">${it.published_date}</div>`
       : (it.published_at ? `<div class="date">${it.published_at}</div>` : "");
-    const takeHtml =
-      it.takeaways && it.takeaways.length
-        ? `<ul class="takeaways">${it.takeaways.map((t) => `<li>${t}</li>`).join("")}</ul>`
-        : "";
+    
     return `<div class="card">
       ${imgHtml}
       <h2 class="title"><a href="${it.url}" target="_blank">${it.title}</a></h2>
       ${dateHtml}
       <p>${it.summary}</p>
-      ${takeHtml}
+      <div class="save-article">
+        <svg viewBox="0 0 24 24" class="heart-icon">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <span>Save article</span>
+      </div>
     </div>`;
   }
 
@@ -75,26 +77,44 @@
   }
 
   async function loadSources() {
-    if (sourcesLoaded || !sourceSel) return; // prevent double fetch/bind
-    sourcesLoaded = true;
-    try {
-      const res = await fetch("/sources");
-      const data = await res.json();
-      const opts = data.sources || [];
-      for (const s of opts) {
-        const opt = document.createElement("option");
-        opt.value = s;
-        opt.textContent = s;
-        sourceSel.appendChild(opt);
-      }
-      if (currentSource) {
-        sourceSel.value = currentSource;
-        clearAndLoadFirstPage();
-      }
-    } catch {
-      // ignore
+  if (!sourceSel) return;
+  try {
+    const res = await fetch("/sources");
+    const data = await res.json();
+    const opts = data.sources || [];
+
+    // If no cached sources yet: hide the control and clear any stored selection
+    if (!opts.length) {
+      const wrap = document.getElementById("sourceWrap");
+      if (wrap) wrap.style.display = "none";
+      currentSource = "";
+      localStorage.removeItem("source_filter");
+      return;
     }
+
+    // Repopulate options
+    for (const s of opts) {
+      const opt = document.createElement("option");
+      opt.value = s;
+      opt.textContent = s;
+      sourceSel.appendChild(opt);
+    }
+
+    // If stored selection isn't available anymore, reset it
+    if (currentSource && !opts.includes(currentSource)) {
+      currentSource = "";
+      localStorage.removeItem("source_filter");
+    }
+
+    // Apply current selection and reload if set
+    if (currentSource) {
+      sourceSel.value = currentSource;
+      clearAndLoadFirstPage();
+    }
+  } catch {
+    // swallow
   }
+}
 
   function getToken() {
     let token = localStorage.getItem("refresh_token");
