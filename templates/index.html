@@ -4,68 +4,93 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Summarized Articles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body
   data-initial-offset="{{ items|length if items is defined else 0 }}"
   data-page-size="5"
 >
-  <form class="search" method="get" action="/">
-    <input
-        type="text"
-        name="q"
-        value="{{ q if q is defined else '' }}"
-        placeholder="Search keyword..."
-        style="width:55%;padding:0.4rem;border-radius:6px;border:1px solid #ccc;"
-    />
-    <select id="sourceFilter" style="padding:0.4rem;border-radius:6px;border:1px solid #ccc;">
-        <option value="">All sources</option>
-    </select>
-    <button type="submit" style="padding:0.4rem 0.8rem;">Search</button>
-    </form>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+    <svg class="sun-icon" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  </button>
 
-  <form id="refreshForm" onsubmit="return false;" style="margin-bottom:1rem;">
-    <button id="refreshBtn" type="button">Refresh now</button>
-    <span id="status" style="margin-left:0.5rem;color:#555;"></span>
-  </form>
+  <div class="container">
+    <header>
+      <h1 class="masthead">The Daily Digest</h1>
+      <p class="tagline">Curated & Summarized</p>
+    </header>
 
-  <div id="list">
-  {% if not items or items|length == 0 %}
-    <div class="card">
-      <p>No summaries yet.</p>
-      <p>Click <strong>Refresh now</strong> to fetch and summarize the latest articles.</p>
+    <div class="controls">
+      <form class="search-row" method="get" action="/">
+        <div class="search-input-wrapper">
+          <input
+            type="text"
+            name="q"
+            value="{{ q if q is defined else '' }}"
+            placeholder="Search articles..."
+          />
+          <button type="submit" class="search-btn" aria-label="Search">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </button>
+        </div>
+        <select id="sourceFilter">
+          <option value="">All sources</option>
+        </select>
+      </form>
+
+      <form id="refreshForm" onsubmit="return false;">
+        <button id="refreshBtn" type="button" class="refresh-btn">Refresh Articles</button>
+      </form>
     </div>
-  {% else %}
-    {% for item in items %}
+
+    <div id="list">
+    {% if not items or items|length == 0 %}
+      <div class="card empty-state">
+        <p>No summaries yet.</p>
+        <p>Click <strong>Refresh Articles</strong> to fetch and summarize the latest articles.</p>
+      </div>
+    {% else %}
+      {% for item in items %}
       <div class="card">
         {% if item.image_url %}
-          <div>
-            <img src="{{ item.image_url }}" alt="" style="max-width:100%;border-radius:8px;margin-bottom:0.5rem;">
-          </div>
+        <img src="{{ item.image_url }}" alt="">
         {% endif %}
-        <div class="title"><a href="{{ item.url }}" target="_blank">{{ item.title }}</a></div>
+        <h2 class="title"><a href="{{ item.url }}" target="_blank">{{ item.title }}</a></h2>
         {% if item.published_date %}
-        <div style="font-size:0.9rem;color:#666;margin-bottom:0.4rem;">
-            {{ item.published_date }}
-        </div>
+        <div class="date">{{ item.published_date }}</div>
         {% elif item.published_at %}
-        <div style="font-size:0.9rem;color:#666;margin-bottom:0.4rem;">
-            {{ item.published_at }}
-        </div>
+        <div class="date">{{ item.published_at }}</div>
         {% endif %}
         <p>{{ item.summary }}</p>
         {% if item.takeaways %}
-          <ul class="takeaways">
-            {% for t in item.takeaways %}<li>{{ t }}</li>{% endfor %}
-          </ul>
+        <ul class="takeaways">
+          {% for t in item.takeaways %}<li>{{ t }}</li>{% endfor %}
+        </ul>
         {% endif %}
       </div>
-    {% endfor %}
-  {% endif %}
-  </div>
+      {% endfor %}
+    {% endif %}
+    </div>
 
-  <div style="text-align:center;margin:1rem 0;">
-    <button id="loadMoreBtn" type="button">Load more</button>
+    <div class="load-more">
+      <button id="loadMoreBtn" type="button">Load More Articles</button>
+    </div>
   </div>
 
   <script src="/static/script.js"></script>

@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 import sqlite3, json
 from pathlib import Path
 from urllib.parse import urlsplit
+from collections import defaultdict
 
 from app.db import init_db, last_run
 from app.config import settings
@@ -20,6 +21,55 @@ TEMPLATES_DIR = ROOT / "templates"
 STATIC_DIR = ROOT / "static"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+def _prettify_domain(host: str) -> str:
+    if not host:
+        return ""
+    host = host.lower().replace("www.", "")
+    # basic prettifier: split on dots/hyphens, titlecase tokens
+    parts = []
+    for token in host.replace("-", " ").split("."):
+        token = token.strip()
+        if not token:
+            continue
+        # keep common acronyms uppercased
+        if token in {"ai", "mit"}:
+            parts.append(token.upper())
+        else:
+            parts.append(token.capitalize())
+    # heuristics: "Technologyreview" -> "Technology Review"
+    return " ".join(parts)
+
+def build_source_map() -> dict[str, str]:
+    """
+    Returns {domain -> display_name}, preferring the most common non-domain 'source' seen.
+    Falls back to a prettified domain.
+    """
+    init_db()
+    conn = sqlite3.connect(settings.db_path); cur = conn.cursor()
+    cur.execute("SELECT json_extract(summary_json,'$.source'), json_extract(summary_json,'$.domain') FROM summaries")
+    rows = cur.fetchall()
+    conn.close()
+
+    by_domain_counts: dict[str, defaultdict[str, int]] = {}
+    for src, dom in rows:
+        dom = (dom or "").strip().lower()
+        if not dom:
+            continue
+        label = (src or "").strip()
+        if not label:
+            label = _prettify_domain(dom)
+        if dom not in by_domain_counts:
+            by_domain_counts[dom] = defaultdict(int)
+        by_domain_counts[dom][label] += 1
+
+    mapping: dict[str, str] = {}
+    for dom, counts in by_domain_counts.items():
+        # pick the label with max count; if tie, prefer one that isn't a raw domain
+        best = max(counts.items(), key=lambda kv: (kv[1], not "." in kv[0]))
+        mapping[dom] = best[0]
+
+    return mapping
 
 def list_sources() -> list[str]:
     init_db()
@@ -47,12 +97,21 @@ def get_rows(limit: int, offset: int, q: str | None, since: str | None, source: 
         where.append("created_at >= ?")
         params.append(since)
     if source:
-        # Case-insensitive match against source (feed title) OR domain
-        where.append(
-            "(LOWER(json_extract(summary_json,'$.source')) = LOWER(?) "
-            " OR LOWER(json_extract(summary_json,'$.domain')) = LOWER(?))"
-        )
-        params.extend([source, source])
+        mapping = build_source_map()
+        # domains that map to the requested display name
+        doms = [d for d, name in mapping.items() if name.lower() == source.lower()]
+        if doms:
+            placeholders = ",".join("?" for _ in doms)
+            where.append(
+                "(LOWER(json_extract(summary_json,'$.source')) = LOWER(?) "
+                f" OR LOWER(json_extract(summary_json,'$.domain')) IN ({placeholders}))"
+            )
+            params.append(source)
+            params.extend([d.lower() for d in doms])
+        else:
+            # still allow exact source match fallback
+            where.append("LOWER(json_extract(summary_json,'$.source')) = LOWER(?)")
+            params.append(source)
 
     where_sql = ("WHERE " + " AND ".join(where)) if where else ""
     sql = (
@@ -61,10 +120,24 @@ def get_rows(limit: int, offset: int, q: str | None, since: str | None, source: 
         "ORDER BY created_at DESC LIMIT ? OFFSET ?"
     )
     params.extend([limit, offset])
+
     conn = sqlite3.connect(settings.db_path); cur = conn.cursor()
     cur.execute(sql, params)
     rows = [json.loads(r[0]) for r in cur.fetchall()]
     conn.close()
+
+    # ensure display date for legacy rows
+    from datetime import datetime
+    def eu_date(iso_ts: str | None) -> str:
+        if not iso_ts: return ""
+        try:
+            dt = datetime.fromisoformat(iso_ts.replace("Z", "+00:00"))
+            return dt.strftime("%d-%m-%Y")
+        except Exception:
+            return ""
+    for obj in rows:
+        if not obj.get("published_date"):
+            obj["published_date"] = eu_date(obj.get("published_at"))
     return rows
 
 
@@ -141,27 +214,16 @@ def home_page(request: Request, q: str | None = None, source: str | None = None)
 
 @app.get("/sources")
 def sources_api():
-    init_db()
-    conn = sqlite3.connect(settings.db_path); cur = conn.cursor()
-    cur.execute("SELECT DISTINCT json_extract(summary_json,'$.source'), json_extract(summary_json,'$.domain') FROM summaries")
-    opts = set()
-    for s, d in cur.fetchall():
-        s = (s or "").strip()
-        d = (d or "").strip()
-        if s:
-            opts.add(s)
-        elif d:
-            opts.add(d)
-    conn.close()
-
-    if not opts:
-        # fallback to feeds.txt domains
+    mapping = build_source_map()
+    # If DB is empty, fall back to feeds.txt domains
+    if not mapping:
         from urllib.parse import urlsplit
         feeds = load_lines(str(ROOT / "data" / "feeds.txt"))
         for u in feeds:
-            host = urlsplit(u).netloc
+            host = urlsplit(u).netloc.lower().replace("www.", "")
             if host:
-                opts.add(host)
-
-    return JSONResponse({"sources": sorted(opts, key=str.lower)})
+                mapping[host] = _prettify_domain(host)
+    # Return unique display names sorted
+    names = sorted(set(mapping.values()), key=str.lower)
+    return JSONResponse({"sources": names})
 

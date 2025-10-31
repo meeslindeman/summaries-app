@@ -1,29 +1,44 @@
 (function () {
+  // Theme toggle functionality
+  const themeToggle = document.getElementById('themeToggle');
+  const html = document.documentElement;
+  
+  // Check for saved theme preference or default to light mode
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  html.setAttribute('data-theme', currentTheme);
+  
+  themeToggle.addEventListener('click', () => {
+    const theme = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    html.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  });
+
+  // Existing article loading functionality
   const pageSize = parseInt(document.body.dataset.pageSize || "5", 10);
   let offset = parseInt(document.body.dataset.initialOffset || "0", 10);
   let currentSource = localStorage.getItem("source_filter") || "";
+  let sourcesLoaded = false; // guard against double /sources calls
 
   const $ = (sel) => document.querySelector(sel);
   const list = $("#list");
   const loadMoreBtn = $("#loadMoreBtn");
   const refreshBtn = $("#refreshBtn");
-  const statusEl = $("#status");
-  const sourceSel = $("#sourceFilter"); // NEW
+  const sourceSel = $("#sourceFilter");
 
   function renderItem(it) {
     const imgHtml = it.image_url
-      ? `<div><img src="${it.image_url}" alt="" style="max-width:100%;border-radius:8px;margin-bottom:0.5rem;"></div>`
+      ? `<img src="${it.image_url}" alt="">`
       : "";
     const dateHtml = it.published_date
-      ? `<div style="font-size:0.9rem;color:#666;margin-bottom:0.4rem;">${it.published_date}</div>`
-      : (it.published_at ? `<div style="font-size:0.9rem;color:#666;margin-bottom:0.4rem;">${it.published_at}</div>` : "");
+      ? `<div class="date">${it.published_date}</div>`
+      : (it.published_at ? `<div class="date">${it.published_at}</div>` : "");
     const takeHtml =
       it.takeaways && it.takeaways.length
         ? `<ul class="takeaways">${it.takeaways.map((t) => `<li>${t}</li>`).join("")}</ul>`
         : "";
     return `<div class="card">
       ${imgHtml}
-      <div class="title"><a href="${it.url}" target="_blank">${it.title}</a></div>
+      <h2 class="title"><a href="${it.url}" target="_blank">${it.title}</a></h2>
       ${dateHtml}
       <p>${it.summary}</p>
       ${takeHtml}
@@ -56,10 +71,12 @@
     offset = 0;
     loadMoreBtn.textContent = "Load more";
     loadMoreBtn.disabled = false;
-    loadMore(); // fetch first page with currentSource
+    loadMore();
   }
 
   async function loadSources() {
+    if (sourcesLoaded || !sourceSel) return; // prevent double fetch/bind
+    sourcesLoaded = true;
     try {
       const res = await fetch("/sources");
       const data = await res.json();
@@ -72,18 +89,11 @@
       }
       if (currentSource) {
         sourceSel.value = currentSource;
-        clearAndLoadFirstPage(); // refresh list to match selection
+        clearAndLoadFirstPage();
       }
-    } catch {}
-  }
-
-    if (sourceSel) {
-    sourceSel.addEventListener("change", () => {
-      currentSource = sourceSel.value;
-      localStorage.setItem("source_filter", currentSource);   // persist
-      clearAndLoadFirstPage();
-    });
-    loadSources();
+    } catch {
+      // ignore
+    }
   }
 
   function getToken() {
@@ -97,7 +107,6 @@
 
   async function doRefresh() {
     refreshBtn.disabled = true;
-    statusEl.textContent = "Refreshing…";
     try {
       const headers = { "Content-Type": "application/json" };
       const token = getToken();
@@ -110,11 +119,10 @@
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "refresh failed");
-      statusEl.textContent = `Done. ${data.stats.summarized} summarized, ${data.stats.cached} cached.`;
-      // After refresh, rebuild the list for current filter
+      // Silent refresh; rebuild the list for current filter
       clearAndLoadFirstPage();
     } catch (e) {
-      statusEl.textContent = "Error: " + e.message;
+      alert("Refresh failed: " + e.message);
       refreshBtn.disabled = false;
     }
   }
@@ -125,6 +133,7 @@
   if (sourceSel) {
     sourceSel.addEventListener("change", () => {
       currentSource = sourceSel.value;
+      localStorage.setItem("source_filter", currentSource);
       clearAndLoadFirstPage();
     });
     loadSources();
