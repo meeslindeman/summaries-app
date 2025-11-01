@@ -139,19 +139,17 @@
       });
 
       if (res.status === 401) {
-        // token changed/invalid — clear and prompt once
         localStorage.removeItem("refresh_token");
         const newTok = prompt("Enter refresh token:");
         if (newTok) {
           localStorage.setItem("refresh_token", newTok);
-          return doRefresh(); // retry immediately with the new token
+          return doRefresh(); // retry
         }
         refreshBtn.disabled = false;
         return;
       }
-
       if (res.status === 429) {
-        alert("Please wait a bit before refreshing again.");
+        alert("Please wait a few seconds before refreshing again.");
         refreshBtn.disabled = false;
         return;
       }

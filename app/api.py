@@ -168,32 +168,43 @@ def health():
     lr = last_run()
     return {"status": "ok", "last_run": lr}
 
+# at top of file
+import time
+_last_refresh_ts = 0          # keep this global
+
+
 @app.post("/refresh")
-def refresh(per_feed: int | None = Body(None, embed=True), 
-            include_details: bool = Body(False, embed=True),
-            authorization: str | None = Header(None)):
-    global _last_refresh_ts
-    now = time.time()
-    if now - _last_refresh_ts < 60:  # 1 minute
-        raise HTTPException(429, "refresh too soon")
-    _last_refresh_ts = now
+def refresh(
+    per_feed: int | None = Body(None, embed=True),
+    authorization: str | None = Header(None),
+    # optionally accept token in body as a fallback if proxy strips headers
+    token: str | None = Body(None, embed=True),
+):
+    # 1) Auth FIRST
     required = f"Bearer {settings.refresh_token}" if settings.refresh_token else None
-    if required and authorization != required:
+
+    # allow either header or body 'token' (header preferred)
+    presented = authorization or (f"Bearer {token}" if token else None)
+
+    if required and presented != required:
+        # Do NOT touch the rate-limit clock on auth failure
         raise HTTPException(status_code=401, detail="unauthorized")
 
+    # 2) Rate-limit only AFTER successful auth
+    global _last_refresh_ts
+    now = time.time()
+    if now - _last_refresh_ts < 5:  # e.g., 5s window
+        raise HTTPException(status_code=429, detail="refresh too soon")
+    _last_refresh_ts = now
+
+    # 3) ... proceed normally
     s = load_settings()
     per_feed = per_feed or s.per_feed_cap
-
     feeds = load_lines(str(ROOT / "data" / "feeds.txt"))
-    inc = load_lines(str(ROOT / "data" / "include.txt"))
-    exc = load_lines(str(ROOT / "data" / "exclude.txt"))
     if not feeds:
         return JSONResponse({"error": "no feeds configured"}, status_code=400)
-
-    stats = run_once(feeds=feeds, includes=inc, excludes=exc, per_feed=per_feed, dry_run=False)
-    if include_details:
-        return JSONResponse({"ok": True, **stats})
-    return JSONResponse({"ok": True, "stats": {k:v for k,v in stats.items() if k != "details"}})
+    stats = run_once(feeds=feeds, per_feed=per_feed, dry_run=False)
+    return JSONResponse({"ok": True, "stats": stats})
 
 
 @app.get("/home")
