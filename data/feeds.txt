@@ -1,6 +1,5 @@
 https://www.technologyreview.com/feed/
 https://www.ftm.nl/feed/
-https://www.nrc.nl/rss/
 https://www.smithsonianmag.com/rss/history/
 https://feeds.science.org/rss/science.xml
 https://nautil.us/feed/

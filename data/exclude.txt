@@ -31,13 +31,6 @@ wielrennen
 tennis
 transfer
 
-# ---------- Site-specific excludes ----------
-nrc.nl: liveblog
-nrc.nl: podcast
-nrc.nl: column
-nrc.nl: commentaar
-nrc.nl: "In Beeld"
-
 ftm.nl: podcast
 ftm.nl: "onze nieuwsbrieven"
 ftm.nl: webinar
