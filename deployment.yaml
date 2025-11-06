@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: summaries
+  namespace: meeslindeman
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: summaries
+  template:
+    metadata:
+      labels:
+        app: summaries
+    spec:
+      containers:
+      - name: summaries
+        # Update the image tag as needed for new versions:
+        image: containers.lindeman.it/summaries.lindeman.it:1.0.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: LOG_LEVEL
+          value: debug
+        - name: OPENAI_MODEL
+          value: gpt-4o-mini
+        - name: REFRESH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: summaries-app
+              key: REFRESH_TOKEN
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: summaries-app
+              key: OPENAI_API_KEY
+      imagePullSecrets:
+      - name: containers-lindeman-it-creds
