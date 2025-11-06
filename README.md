@@ -24,6 +24,6 @@ docker push containers.lindeman.it/summaries.lindeman.it:1.0.0
 
 Make sure to update the version (`1.0.0` in the above example) every time you want to do an update.
 
-After you have pushed a new image to the registry, you need to update the Kubernetes Deployment Manifest (`deployment.yaml`) to reflect the version update of the image. The K8s cluster will pick up your changes automatically and will deploy your latest version for you.
+After you have pushed a new image to the registry, you need to update the Kubernetes Deployment Manifest (`deployment/manifest.yaml`) to reflect the version update of the image. The K8s cluster will pick up your changes automatically and will deploy your latest version for you.
 
 
